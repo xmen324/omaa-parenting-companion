@@ -1,71 +1,16 @@
 /**
- * AI Service for Mother of Mother
- * ================================
+ * AI Service for OMaa - Your AI Parenting Companion
+ * ==================================================
  *
- * This service handles communication with different AI providers.
- * It supports OpenAI, Anthropic (Claude), and DeepSeek APIs.
- *
- * The service automatically formats requests for each provider's API format.
+ * This service handles communication with the backend API.
+ * The backend securely manages API keys for OpenAI and Anthropic.
  */
 
 class AIService {
     constructor() {
-        this.currentProvider = this.getStoredProvider();
+        this.currentProvider = 'openai'; // Default provider
         this.conversationHistory = [];
         this.loadChatHistory();
-    }
-
-    /**
-     * Get the currently selected provider from storage
-     */
-    getStoredProvider() {
-        return localStorage.getItem(STORAGE_KEYS.PROVIDER) || AI_CONFIG.defaultProvider;
-    }
-
-    /**
-     * Set the current provider
-     */
-    setProvider(provider) {
-        if (AI_CONFIG.providers[provider]) {
-            this.currentProvider = provider;
-            localStorage.setItem(STORAGE_KEYS.PROVIDER, provider);
-        }
-    }
-
-    /**
-     * Get API key for a provider
-     */
-    getApiKey(provider = this.currentProvider) {
-        return localStorage.getItem(STORAGE_KEYS.API_KEY_PREFIX + provider) || '';
-    }
-
-    /**
-     * Set API key for a provider
-     */
-    setApiKey(provider, apiKey) {
-        localStorage.setItem(STORAGE_KEYS.API_KEY_PREFIX + provider, apiKey);
-    }
-
-    /**
-     * Get selected model for a provider
-     */
-    getModel(provider = this.currentProvider) {
-        const stored = localStorage.getItem(STORAGE_KEYS.MODEL_PREFIX + provider);
-        return stored || AI_CONFIG.providers[provider].defaultModel;
-    }
-
-    /**
-     * Set model for a provider
-     */
-    setModel(provider, model) {
-        localStorage.setItem(STORAGE_KEYS.MODEL_PREFIX + provider, model);
-    }
-
-    /**
-     * Get provider configuration
-     */
-    getProviderConfig(provider = this.currentProvider) {
-        return AI_CONFIG.providers[provider];
     }
 
     /**
@@ -119,36 +64,42 @@ class AIService {
      * Send a message to the AI and get a response
      */
     async sendMessage(userMessage) {
-        const provider = this.currentProvider;
-        const apiKey = this.getApiKey();
-        const model = this.getModel();
-
-        if (!apiKey) {
-            throw new Error('API key not configured. Please add your API key in settings.');
-        }
-
         // Add user message to history
         this.addToHistory('user', userMessage);
 
         try {
-            let response;
-            switch (provider) {
-                case 'openai':
-                    response = await this.sendOpenAIRequest(apiKey, model, userMessage);
-                    break;
-                case 'anthropic':
-                    response = await this.sendAnthropicRequest(apiKey, model, userMessage);
-                    break;
-                case 'deepseek':
-                    response = await this.sendDeepSeekRequest(apiKey, model, userMessage);
-                    break;
-                default:
-                    throw new Error('Unknown provider: ' + provider);
+            // Build messages array with system prompt and history
+            const messages = [
+                { role: 'system', content: AI_CONFIG.systemPrompt },
+                ...this.conversationHistory.map(msg => ({
+                    role: msg.role,
+                    content: msg.content
+                }))
+            ];
+
+            // Call our backend API
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    messages: messages,
+                    provider: this.currentProvider
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.error || `API error: ${response.status}`);
             }
 
+            const data = await response.json();
+            const assistantMessage = data.content;
+
             // Add assistant response to history
-            this.addToHistory('assistant', response);
-            return response;
+            this.addToHistory('assistant', assistantMessage);
+            return assistantMessage;
         } catch (error) {
             // Remove the user message from history if request failed
             this.conversationHistory.pop();
@@ -158,132 +109,48 @@ class AIService {
     }
 
     /**
-     * Send request to OpenAI API
+     * Check backend health and available providers
      */
-    async sendOpenAIRequest(apiKey, model, userMessage) {
-        const messages = [
-            { role: 'system', content: AI_CONFIG.systemPrompt },
-            ...this.conversationHistory.map(msg => ({
-                role: msg.role,
-                content: msg.content
-            }))
-        ];
-
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: model,
-                messages: messages,
-                max_tokens: AI_CONFIG.chatSettings.maxTokens,
-                temperature: AI_CONFIG.chatSettings.temperature
-            })
-        });
-
-        if (!response.ok) {
-            const error = await response.json().catch(() => ({}));
-            throw new Error(error.error?.message || `OpenAI API error: ${response.status}`);
+    async checkHealth() {
+        try {
+            const response = await fetch('/api/health');
+            if (response.ok) {
+                return await response.json();
+            }
+            return null;
+        } catch (e) {
+            console.error('Health check failed:', e);
+            return null;
         }
-
-        const data = await response.json();
-        return data.choices[0].message.content;
     }
 
     /**
-     * Send request to Anthropic API
-     */
-    async sendAnthropicRequest(apiKey, model, userMessage) {
-        // Anthropic uses a different message format
-        const messages = this.conversationHistory.map(msg => ({
-            role: msg.role,
-            content: msg.content
-        }));
-
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01',
-                'anthropic-dangerous-direct-browser-access': 'true'
-            },
-            body: JSON.stringify({
-                model: model,
-                max_tokens: AI_CONFIG.chatSettings.maxTokens,
-                system: AI_CONFIG.systemPrompt,
-                messages: messages
-            })
-        });
-
-        if (!response.ok) {
-            const error = await response.json().catch(() => ({}));
-            throw new Error(error.error?.message || `Anthropic API error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data.content[0].text;
-    }
-
-    /**
-     * Send request to DeepSeek API
-     */
-    async sendDeepSeekRequest(apiKey, model, userMessage) {
-        // DeepSeek uses OpenAI-compatible API format
-        const messages = [
-            { role: 'system', content: AI_CONFIG.systemPrompt },
-            ...this.conversationHistory.map(msg => ({
-                role: msg.role,
-                content: msg.content
-            }))
-        ];
-
-        const response = await fetch('https://api.deepseek.com/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: model,
-                messages: messages,
-                max_tokens: AI_CONFIG.chatSettings.maxTokens,
-                temperature: AI_CONFIG.chatSettings.temperature
-            })
-        });
-
-        if (!response.ok) {
-            const error = await response.json().catch(() => ({}));
-            throw new Error(error.error?.message || `DeepSeek API error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data.choices[0].message.content;
-    }
-
-    /**
-     * Check if the service is properly configured
+     * Service is always configured when using backend
      */
     isConfigured() {
-        return !!this.getApiKey();
+        return true;
     }
 
     /**
      * Get current status
      */
     getStatus() {
-        const provider = this.currentProvider;
-        const config = this.getProviderConfig();
         return {
-            provider: provider,
-            providerName: config.name,
-            model: this.getModel(),
-            isConfigured: this.isConfigured(),
+            provider: this.currentProvider,
+            providerName: 'OMaa AI',
+            isConfigured: true,
             historyLength: this.conversationHistory.length
         };
     }
+
+    // Legacy methods for compatibility (no longer needed with backend)
+    getStoredProvider() { return this.currentProvider; }
+    setProvider(provider) { this.currentProvider = provider; }
+    getApiKey() { return 'server-managed'; }
+    setApiKey() { }
+    getModel() { return 'auto'; }
+    setModel() { }
+    getProviderConfig() { return AI_CONFIG.providers.openai; }
 }
 
 // Create global instance

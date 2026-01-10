@@ -1,8 +1,9 @@
 /**
- * Chat Page JavaScript for Mother of Mother
- * ==========================================
+ * Chat Page JavaScript for OMaa - AI Parenting Companion
+ * =======================================================
  *
- * Handles the chat interface, settings modal, and AI interactions.
+ * Handles the chat interface and AI interactions.
+ * Uses server-side API keys - no user configuration needed.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -12,16 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendBtn = document.getElementById('sendBtn');
     const menuBtn = document.getElementById('menuBtn');
     const mobileMenu = document.getElementById('mobileMenu');
-    const settingsBtn = document.getElementById('settingsBtn');
-    const settingsModal = document.getElementById('settingsModal');
-    const closeSettings = document.getElementById('closeSettings');
-    const saveSettings = document.getElementById('saveSettings');
-    const aiProviderSelect = document.getElementById('aiProvider');
-    const apiKeyInput = document.getElementById('apiKey');
-    const modelSelect = document.getElementById('modelSelect');
-
-    // Initialize settings
-    initializeSettings();
+    const clearChatBtn = document.getElementById('clearChatBtn');
 
     // Load chat history
     loadChatHistory();
@@ -39,102 +31,24 @@ document.addEventListener('DOMContentLoaded', () => {
         mobileMenu.classList.toggle('active');
     });
 
-    settingsBtn.addEventListener('click', () => {
-        settingsModal.classList.add('active');
-        loadSettingsValues();
-    });
-
-    closeSettings.addEventListener('click', () => {
-        settingsModal.classList.remove('active');
-    });
-
-    settingsModal.addEventListener('click', (e) => {
-        if (e.target === settingsModal) {
-            settingsModal.classList.remove('active');
-        }
-    });
-
-    saveSettings.addEventListener('click', saveSettingsHandler);
-
-    aiProviderSelect.addEventListener('change', () => {
-        updateModelOptions(aiProviderSelect.value);
-        // Load saved API key for selected provider
-        apiKeyInput.value = aiService.getApiKey(aiProviderSelect.value);
-    });
-
-    /**
-     * Initialize settings UI
-     */
-    function initializeSettings() {
-        // Populate provider dropdown
-        Object.entries(AI_CONFIG.providers).forEach(([key, provider]) => {
-            const option = document.createElement('option');
-            option.value = key;
-            option.textContent = provider.name;
-            aiProviderSelect.appendChild(option);
+    if (clearChatBtn) {
+        clearChatBtn.addEventListener('click', () => {
+            if (confirm('Clear all chat history?')) {
+                aiService.clearHistory();
+                // Remove all messages except the welcome message
+                const messages = chatMessages.querySelectorAll('.message');
+                messages.forEach((msg, index) => {
+                    if (index > 0) msg.remove();
+                });
+                showNotification('Chat history cleared');
+            }
         });
-
-        // Set current provider
-        aiProviderSelect.value = aiService.currentProvider;
-        updateModelOptions(aiService.currentProvider);
-    }
-
-    /**
-     * Load current settings values into the form
-     */
-    function loadSettingsValues() {
-        const provider = aiService.currentProvider;
-        aiProviderSelect.value = provider;
-        apiKeyInput.value = aiService.getApiKey(provider);
-        updateModelOptions(provider);
-        modelSelect.value = aiService.getModel(provider);
-    }
-
-    /**
-     * Update model dropdown based on selected provider
-     */
-    function updateModelOptions(provider) {
-        modelSelect.innerHTML = '';
-        const providerConfig = AI_CONFIG.providers[provider];
-
-        providerConfig.models.forEach(model => {
-            const option = document.createElement('option');
-            option.value = model.id;
-            option.textContent = model.name;
-            modelSelect.appendChild(option);
-        });
-
-        // Set current model
-        modelSelect.value = aiService.getModel(provider);
-    }
-
-    /**
-     * Save settings
-     */
-    function saveSettingsHandler() {
-        const provider = aiProviderSelect.value;
-        const apiKey = apiKeyInput.value.trim();
-        const model = modelSelect.value;
-
-        // Save settings
-        aiService.setProvider(provider);
-        aiService.setApiKey(provider, apiKey);
-        aiService.setModel(provider, model);
-
-        // Close modal
-        settingsModal.classList.remove('active');
-
-        // Show confirmation
-        showNotification('Settings saved successfully!');
     }
 
     /**
      * Load and display chat history
      */
     function loadChatHistory() {
-        // Clear existing messages except the welcome message
-        const welcomeMessage = chatMessages.querySelector('.ai-message');
-
         // Display conversation history
         aiService.conversationHistory.forEach(msg => {
             addMessageToUI(msg.content, msg.role === 'user');
@@ -147,14 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
     async function sendMessage() {
         const message = chatInput.value.trim();
         if (!message) return;
-
-        // Check if configured
-        if (!aiService.isConfigured()) {
-            showNotification('Please configure your API key in settings first.', 'error');
-            settingsModal.classList.add('active');
-            loadSettingsValues();
-            return;
-        }
 
         // Add user message to UI
         addMessageToUI(message, true);
@@ -200,11 +106,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         messageDiv.innerHTML = `
             <div class="message-avatar">
-                <img src="${avatar}" alt="${isUser ? 'You' : 'MoM'}">
+                <img src="${avatar}" alt="${isUser ? 'You' : 'OMaa'}">
             </div>
             <div class="message-content">
                 <div class="message-header">
-                    <span class="message-sender">${isUser ? 'You' : 'MoM'}</span>
+                    <span class="message-sender">${isUser ? 'You' : 'OMaa'}</span>
                     ${!isUser ? '<span class="thinking-label">Thought</span>' : ''}
                 </div>
                 <div class="message-text ${isError ? 'error-message' : ''}">
@@ -280,11 +186,11 @@ document.addEventListener('DOMContentLoaded', () => {
         typingDiv.id = 'typing-indicator';
         typingDiv.innerHTML = `
             <div class="message-avatar">
-                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='35' r='20' fill='%23f4a8a8'/%3E%3Ccircle cx='50' cy='70' r='12' fill='%23ffd4d4'/%3E%3C/svg%3E" alt="MoM">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='35' r='20' fill='%23f4a8a8'/%3E%3Ccircle cx='50' cy='70' r='12' fill='%23ffd4d4'/%3E%3C/svg%3E" alt="OMaa">
             </div>
             <div class="message-content">
                 <div class="message-header">
-                    <span class="message-sender">MoM</span>
+                    <span class="message-sender">OMaa</span>
                     <span class="thinking-label">Thinking...</span>
                 </div>
                 <div class="typing-indicator">
@@ -345,6 +251,17 @@ document.addEventListener('DOMContentLoaded', () => {
         .error-message {
             background: #fff0f0 !important;
             border-left: 3px solid #ff4444;
+        }
+        .clear-chat-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            color: var(--text-secondary, #666);
+            transition: color 0.2s;
+        }
+        .clear-chat-btn:hover {
+            color: var(--primary-color, #f4a8a8);
         }
     `;
     document.head.appendChild(style);
