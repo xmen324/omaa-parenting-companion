@@ -10,8 +10,17 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Initialize Stripe
+const stripe = process.env.STRIPE_SECRET_KEY
+    ? require('stripe')(process.env.STRIPE_SECRET_KEY)
+    : null;
+
 // Middleware
 app.use(cors());
+
+// Raw body parser for Stripe webhooks (must be before express.json)
+app.use('/api/webhook/stripe', express.raw({ type: 'application/json' }));
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
@@ -114,6 +123,126 @@ async function callAnthropic(messages) {
     };
 }
 
+// Stripe: Create Checkout Session
+app.post('/api/create-checkout-session', async (req, res) => {
+    if (!stripe) {
+        return res.status(500).json({ error: 'Stripe not configured' });
+    }
+
+    try {
+        const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
+
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            mode: 'subscription',
+            line_items: [{
+                price: process.env.STRIPE_PRICE_ID,
+                quantity: 1,
+            }],
+            subscription_data: {
+                trial_period_days: 7,
+            },
+            success_url: `${baseUrl}/chat.html?session_id={CHECKOUT_SESSION_ID}&status=success`,
+            cancel_url: `${baseUrl}/chat.html?status=cancelled`,
+        });
+
+        res.json({ sessionId: session.id, url: session.url });
+    } catch (error) {
+        console.error('Checkout session error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Stripe: Get Subscription Status
+app.get('/api/subscription-status', async (req, res) => {
+    if (!stripe) {
+        return res.json({ status: 'no_stripe', canChat: true });
+    }
+
+    const { session_id } = req.query;
+
+    if (!session_id) {
+        return res.json({
+            status: 'no_subscription',
+            canChat: true
+        });
+    }
+
+    try {
+        const session = await stripe.checkout.sessions.retrieve(session_id);
+
+        if (!session.subscription) {
+            return res.json({
+                status: 'no_subscription',
+                canChat: true
+            });
+        }
+
+        const subscription = await stripe.subscriptions.retrieve(session.subscription);
+
+        res.json({
+            status: subscription.status,
+            canChat: ['trialing', 'active'].includes(subscription.status),
+            trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
+            currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+            subscriptionId: subscription.id
+        });
+    } catch (error) {
+        console.error('Subscription status error:', error);
+        res.json({
+            status: 'error',
+            canChat: false,
+            error: error.message
+        });
+    }
+});
+
+// Stripe: Webhook Handler
+app.post('/api/webhook/stripe', async (req, res) => {
+    if (!stripe) {
+        return res.status(400).json({ error: 'Stripe not configured' });
+    }
+
+    const sig = req.headers['stripe-signature'];
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    let event;
+
+    try {
+        if (webhookSecret) {
+            event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+        } else {
+            event = JSON.parse(req.body);
+        }
+    } catch (err) {
+        console.error('Webhook signature verification failed:', err.message);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    // Handle events
+    switch (event.type) {
+        case 'checkout.session.completed':
+            console.log('Checkout completed:', event.data.object.id);
+            break;
+        case 'customer.subscription.updated':
+            console.log('Subscription updated:', event.data.object.id, event.data.object.status);
+            break;
+        case 'customer.subscription.deleted':
+            console.log('Subscription deleted:', event.data.object.id);
+            break;
+        case 'invoice.payment_succeeded':
+            console.log('Payment succeeded:', event.data.object.id);
+            break;
+        case 'invoice.payment_failed':
+            console.log('Payment failed:', event.data.object.id);
+            break;
+        default:
+            console.log('Unhandled event type:', event.type);
+    }
+
+    res.json({ received: true });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
     res.json({
@@ -121,7 +250,8 @@ app.get('/api/health', (req, res) => {
         providers: {
             openai: !!process.env.OPENAI_API_KEY,
             anthropic: !!process.env.ANTHROPIC_API_KEY
-        }
+        },
+        stripe: !!stripe
     });
 });
 

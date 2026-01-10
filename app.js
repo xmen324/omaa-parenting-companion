@@ -73,13 +73,38 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Subscribe button click handler
-    if (subscribeBtn) {
-        subscribeBtn.addEventListener('click', () => {
-            // This will be connected to Stripe later
-            window.location.href = 'chat.html';
+    // Subscribe button click handlers
+    const subscribeButtons = document.querySelectorAll('.subscribe-btn');
+    subscribeButtons.forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Disable button and show loading state
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Loading...';
+            btn.style.pointerEvents = 'none';
+
+            try {
+                const response = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+
+                if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    throw new Error(data.error || 'Failed to create checkout session');
+                }
+            } catch (error) {
+                console.error('Checkout error:', error);
+                alert('Unable to start checkout. Please try again.');
+                btn.innerHTML = originalText;
+                btn.style.pointerEvents = 'auto';
+            }
         });
-    }
+    });
 
     // Intersection Observer for animations
     const observerOptions = {

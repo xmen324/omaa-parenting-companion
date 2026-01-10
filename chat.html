@@ -87,7 +87,41 @@
         </div>
     </main>
 
+    <!-- Paywall Modal -->
+    <div id="paywallModal" class="paywall-modal">
+        <div class="paywall-content">
+            <div class="paywall-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="48" height="48">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+            </div>
+            <h2>Continue with OMaa Premium</h2>
+            <p id="paywallMessage">You've used your free trial messages.</p>
+            <ul class="paywall-features">
+                <li>Unlimited conversations with MoM</li>
+                <li>24/7 instant parenting support</li>
+                <li>Personalized advice & memory</li>
+                <li>Cancel anytime</li>
+            </ul>
+            <div class="paywall-price">
+                <span class="price">$24</span>
+                <span class="period">/month</span>
+            </div>
+            <button id="subscribePaywallBtn" class="paywall-btn">
+                Start 7-Day Free Trial
+            </button>
+            <p class="paywall-note">Free for 7 days, then $24/month. Cancel anytime.</p>
+        </div>
+    </div>
+
+    <!-- Trial Counter Badge -->
+    <div id="trialBadge" class="trial-badge">
+        <span id="trialCount">20</span> messages left
+    </div>
+
     <script src="config.js"></script>
+    <script src="subscription-service.js"></script>
     <script src="ai-service.js"></script>
     <script src="chat.js"></script>
 </body>

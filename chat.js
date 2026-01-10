@@ -6,7 +6,7 @@
  * Uses server-side API keys - no user configuration needed.
  */
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // DOM Elements
     const chatMessages = document.getElementById('chatMessages');
     const chatInput = document.getElementById('chatInput');
@@ -14,6 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuBtn = document.getElementById('menuBtn');
     const mobileMenu = document.getElementById('mobileMenu');
     const clearChatBtn = document.getElementById('clearChatBtn');
+    const paywallModal = document.getElementById('paywallModal');
+    const subscribePaywallBtn = document.getElementById('subscribePaywallBtn');
+    const trialBadge = document.getElementById('trialBadge');
+
+    // Initialize subscription service
+    await subscriptionService.init();
+    updateTrialBadge();
 
     // Load chat history
     loadChatHistory();
@@ -62,9 +69,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const message = chatInput.value.trim();
         if (!message) return;
 
+        // Check if user can send message
+        if (!subscriptionService.canSendMessage()) {
+            showPaywall(subscriptionService.getPaywallReason());
+            return;
+        }
+
         // Add user message to UI
         addMessageToUI(message, true);
         chatInput.value = '';
+
+        // Increment message count for trial users
+        if (!subscriptionService.hasActiveSubscription()) {
+            subscriptionService.incrementMessageCount();
+            updateTrialBadge();
+        }
 
         // Show typing indicator
         const typingIndicator = showTypingIndicator();
@@ -265,4 +284,79 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     `;
     document.head.appendChild(style);
+
+    /**
+     * Show paywall modal
+     */
+    function showPaywall(reason) {
+        const message = document.getElementById('paywallMessage');
+
+        if (reason === 'trial_expired') {
+            message.textContent = 'Your 7-day free trial has ended.';
+        } else if (reason === 'message_limit') {
+            message.textContent = 'You\'ve used all 20 free trial messages.';
+        } else {
+            message.textContent = 'Subscribe to continue chatting with MoM.';
+        }
+
+        paywallModal.style.display = 'flex';
+    }
+
+    /**
+     * Hide paywall modal
+     */
+    function hidePaywall() {
+        paywallModal.style.display = 'none';
+    }
+
+    /**
+     * Update trial badge display
+     */
+    function updateTrialBadge() {
+        const countEl = document.getElementById('trialCount');
+
+        if (subscriptionService.hasActiveSubscription()) {
+            trialBadge.style.display = 'none';
+        } else {
+            const remaining = subscriptionService.getMessagesRemaining();
+            countEl.textContent = remaining;
+            trialBadge.style.display = 'block';
+
+            // Add warning style when low
+            if (remaining <= 5) {
+                trialBadge.classList.add('warning');
+            } else {
+                trialBadge.classList.remove('warning');
+            }
+
+            // Hide badge if no messages left (paywall will show)
+            if (remaining <= 0) {
+                trialBadge.style.display = 'none';
+            }
+        }
+    }
+
+    // Subscribe button handler
+    if (subscribePaywallBtn) {
+        subscribePaywallBtn.addEventListener('click', async () => {
+            try {
+                subscribePaywallBtn.disabled = true;
+                subscribePaywallBtn.textContent = 'Loading...';
+                await subscriptionService.startCheckout();
+            } catch (error) {
+                showNotification('Failed to start checkout. Please try again.', 'error');
+                subscribePaywallBtn.disabled = false;
+                subscribePaywallBtn.textContent = 'Start 7-Day Free Trial';
+            }
+        });
+    }
+
+    // Close paywall modal on outside click
+    if (paywallModal) {
+        paywallModal.addEventListener('click', (e) => {
+            if (e.target === paywallModal) {
+                hidePaywall();
+            }
+        });
+    }
 });
