@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OMaa - Your AI Parenting Companion | OMAA LLC</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ff6b9d'/%3E%3Cstop offset='100%25' stop-color='%23c44569'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='45' fill='url(%23g)'/%3E%3Ctext x='50' y='65' text-anchor='middle' fill='white' font-size='40' font-family='Arial' font-weight='bold'%3EO%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <div class="bg-gradient"></div>
+        <div class="floating-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+            <div class="shape shape-4"></div>
+            <div class="shape shape-5"></div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="index.html" class="logo">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#ff6b9d"/>
+                                    <stop offset="100%" stop-color="#c44569"/>
+                                </linearGradient>
+                            </defs>
+                            <circle cx="25" cy="25" r="23" fill="url(#logoGrad)"/>
+                            <circle cx="25" cy="20" r="8" fill="white" opacity="0.9"/>
+                            <ellipse cx="25" cy="35" rx="10" ry="8" fill="white" opacity="0.7"/>
+                        </svg>
+                    </div>
+                    <span class="logo-text">OMaa</span>
+                </a>
+            </div>
+            <div class="nav-center">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#how-it-works" class="nav-link">How It Works</a>
+                <a href="#testimonials" class="nav-link">Stories</a>
+                <a href="#pricing" class="nav-link">Pricing</a>
+            </div>
+            <div class="nav-right">
+                <a href="chat.html" class="nav-btn nav-btn-outline">Try Free</a>
+                <a href="#pricing" class="nav-btn nav-btn-primary">Subscribe</a>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#testimonials">Stories</a>
+        <a href="#pricing">Pricing</a>
+        <a href="chat.html" class="mobile-cta">Try Free</a>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span class="badge-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                </span>
+                AI-Powered Parenting Support
+            </div>
+            <h1 class="hero-title">
+                Meet <span class="gradient-text">OMaa</span><br>
+                Your 24/7 AI<br>
+                Parenting Partner
+            </h1>
+            <p class="hero-subtitle">
+                Instant answers, personalized guidance, and emotional support for every parenting moment.
+                From pregnancy through adulthood - we're here for you.
+            </p>
+            <div class="hero-cta">
+                <a href="chat.html" class="btn btn-primary btn-lg">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    Start Chatting Free
+                </a>
+                <a href="#how-it-works" class="btn btn-ghost">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polygon points="10 8 16 12 10 16 10 8" fill="currentColor"/>
+                    </svg>
+                    See How It Works
+                </a>
+            </div>
+            <div class="hero-trust">
+                <div class="trust-avatars">
+                    <div class="trust-avatar" style="background: linear-gradient(135deg, #ff9a9e, #fecfef)"></div>
+                    <div class="trust-avatar" style="background: linear-gradient(135deg, #a18cd1, #fbc2eb)"></div>
+                    <div class="trust-avatar" style="background: linear-gradient(135deg, #ffecd2, #fcb69f)"></div>
+                    <div class="trust-avatar" style="background: linear-gradient(135deg, #667eea, #764ba2)"></div>
+                </div>
+                <p class="trust-text">Join <strong>thousands of moms</strong> finding support</p>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="ai-avatar-container">
+                <div class="ai-glow"></div>
+                <div class="ai-avatar">
+                    <svg viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Halo glow -->
+                        <defs>
+                            <radialGradient id="haloGrad" cx="50%" cy="30%" r="60%">
+                                <stop offset="0%" stop-color="#ffd700" stop-opacity="0.6"/>
+                                <stop offset="50%" stop-color="#ffb347" stop-opacity="0.3"/>
+                                <stop offset="100%" stop-color="#ff6b9d" stop-opacity="0"/>
+                            </radialGradient>
+                            <linearGradient id="skinGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#fce4d8"/>
+                                <stop offset="100%" stop-color="#f5d0c5"/>
+                            </linearGradient>
+                            <linearGradient id="hairGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#8b5a42"/>
+                                <stop offset="100%" stop-color="#5d3a2e"/>
+                            </linearGradient>
+                            <linearGradient id="sweaterGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#b8d4c8"/>
+                                <stop offset="100%" stop-color="#8fb8a8"/>
+                            </linearGradient>
+                        </defs>
+
+                        <!-- Halo -->
+                        <ellipse cx="200" cy="80" rx="90" ry="30" fill="url(#haloGrad)"/>
+
+                        <!-- Hair back -->
+                        <path d="M120 140 Q200 80 280 140 Q300 200 280 280 Q200 300 120 280 Q100 200 120 140" fill="url(#hairGrad)"/>
+
+                        <!-- Face -->
+                        <ellipse cx="200" cy="180" rx="70" ry="85" fill="url(#skinGrad)"/>
+
+                        <!-- Hair front -->
+                        <path d="M130 140 Q200 100 270 140 Q280 170 270 180 Q200 160 130 180 Q120 170 130 140" fill="url(#hairGrad)"/>
+
+                        <!-- Eyes -->
+                        <ellipse cx="170" cy="175" rx="12" ry="8" fill="#4a3728"/>
+                        <ellipse cx="230" cy="175" rx="12" ry="8" fill="#4a3728"/>
+                        <circle cx="173" cy="173" r="3" fill="white"/>
+                        <circle cx="233" cy="173" r="3" fill="white"/>
+
+                        <!-- Eyebrows -->
+                        <path d="M150 155 Q170 148 185 155" stroke="#5d3a2e" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <path d="M215 155 Q230 148 250 155" stroke="#5d3a2e" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+                        <!-- Nose -->
+                        <path d="M200 185 Q205 200 200 210 Q195 210 197 205" stroke="#e8c4b8" stroke-width="2" fill="none"/>
+
+                        <!-- Smile -->
+                        <path d="M175 225 Q200 245 225 225" stroke="#c44569" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+                        <!-- Blush -->
+                        <ellipse cx="150" cy="210" rx="15" ry="10" fill="#ffb6c1" opacity="0.5"/>
+                        <ellipse cx="250" cy="210" rx="15" ry="10" fill="#ffb6c1" opacity="0.5"/>
+
+                        <!-- Body / Sweater -->
+                        <path d="M100 280 Q80 320 90 450 L310 450 Q320 320 300 280 Q250 310 200 300 Q150 310 100 280" fill="url(#sweaterGrad)"/>
+
+                        <!-- Neck -->
+                        <rect x="175" y="255" width="50" height="35" fill="url(#skinGrad)"/>
+
+                        <!-- V-neck detail -->
+                        <path d="M160 285 L200 330 L240 285" stroke="#8fb8a8" stroke-width="3" fill="none"/>
+
+                        <!-- Baby -->
+                        <ellipse cx="200" cy="400" rx="50" ry="45" fill="#fff5ee"/>
+                        <ellipse cx="200" cy="370" rx="35" ry="35" fill="url(#skinGrad)"/>
+                        <circle cx="190" cy="365" r="4" fill="#4a3728"/>
+                        <circle cx="210" cy="365" r="4" fill="#4a3728"/>
+                        <path d="M195 380 Q200 385 205 380" stroke="#c44569" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <ellipse cx="180" cy="375" rx="8" ry="5" fill="#ffb6c1" opacity="0.4"/>
+                        <ellipse cx="220" cy="375" rx="8" ry="5" fill="#ffb6c1" opacity="0.4"/>
+
+                        <!-- Arms holding baby -->
+                        <path d="M90 320 Q60 380 100 430 Q130 450 150 420" stroke="url(#sweaterGrad)" stroke-width="40" fill="none" stroke-linecap="round"/>
+                        <path d="M310 320 Q340 380 300 430 Q270 450 250 420" stroke="url(#sweaterGrad)" stroke-width="40" fill="none" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="ai-particles">
+                    <span></span><span></span><span></span><span></span><span></span>
+                </div>
+            </div>
+            <div class="chat-preview">
+                <div class="chat-bubble chat-bubble-user">
+                    <p>My baby won't sleep through the night. Help!</p>
+                </div>
+                <div class="chat-bubble chat-bubble-ai">
+                    <div class="ai-indicator">
+                        <span class="pulse"></span>
+                        OMaa
+                    </div>
+                    <p>I understand how exhausting that can be. Let's work through this together. How old is your little one?</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Why Choose OMaa</span>
+                <h2 class="section-title">Everything You Need,<br><span class="gradient-text">All In One Place</span></h2>
+                <p class="section-subtitle">Powered by advanced AI, designed with a mother's heart</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card feature-highlight">
+                    <div class="feature-icon-wrap">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 5a3 3 0 1 1-3 3 3 3 0 0 1 3-3zm0 14.2a7.2 7.2 0 0 1-6-3.22c.03-2 4-3.1 6-3.1s5.97 1.1 6 3.1a7.2 7.2 0 0 1-6 3.22z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <h3>AI That Knows You</h3>
+                    <p>OMaa remembers your family, your challenges, and your preferences - giving personalized advice every time.</p>
+                    <div class="feature-tag">Personalized</div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-wrap">
+                        <div class="feature-icon icon-pink">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <h3>24/7 Availability</h3>
+                    <p>3 AM feeding questions? Midnight worries? OMaa is always here, never judges, always helps.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-wrap">
+                        <div class="feature-icon icon-purple">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <h3>Emotional Support</h3>
+                    <p>More than just answers - compassionate understanding when you need someone to listen.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-wrap">
+                        <div class="feature-icon icon-green">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <h3>Evidence-Based</h3>
+                    <p>Advice grounded in pediatric research and best practices, updated with the latest knowledge.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-wrap">
+                        <div class="feature-icon icon-orange">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <h3>All Ages Covered</h3>
+                    <p>From pregnancy to teenagers - guidance that grows with your family through every stage.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-wrap">
+                        <div class="feature-icon icon-teal">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <h3>100% Private</h3>
+                    <p>Your conversations stay yours. No data selling, no judgment, complete confidentiality.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="categories">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">What OMaa Helps With</span>
+                <h2 class="section-title">Support For <span class="gradient-text">Every Moment</span></h2>
+            </div>
+
+            <div class="categories-grid">
+                <div class="category-card">
+                    <div class="category-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                    </div>
+                    <h3>Organization</h3>
+                    <p>Routines, Scheduling, Tasks, Planning, Home Life, Chores</p>
+                </div>
+
+                <div class="category-card">
+                    <div class="category-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8h1a4 4 0 0 1 0 8h-1"/>
+                            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
+                            <line x1="6" y1="1" x2="6" y2="4"/>
+                            <line x1="10" y1="1" x2="10" y2="4"/>
+                            <line x1="14" y1="1" x2="14" y2="4"/>
+                        </svg>
+                    </div>
+                    <h3>Nutrition & Food</h3>
+                    <p>Recipes, Meal Prep, Allergies, Nursing, Baby Food, Picky Eaters</p>
+                </div>
+
+                <div class="category-card">
+                    <div class="category-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                    </div>
+                    <h3>Guidance</h3>
+                    <p>Decisions, Safety, Behavior, Education, Milestones, Development</p>
+                </div>
+
+                <div class="category-card">
+                    <div class="category-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                    </div>
+                    <h3>Self-Care</h3>
+                    <p>Mental Health, Physical Wellness, Work-Life Balance, Me Time</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Simple & Instant</span>
+                <h2 class="section-title">Start Getting Help <span class="gradient-text">In Seconds</span></h2>
+            </div>
+
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Ask Anything</h3>
+                        <p>Type or speak your question - from sleep troubles to meal ideas, behavior tips to self-care advice.</p>
+                    </div>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Get Instant Help</h3>
+                        <p>OMaa responds with warm, personalized guidance tailored to your unique situation.</p>
+                    </div>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Follow Up Anytime</h3>
+                        <p>Continue the conversation, ask follow-ups, or come back later - OMaa remembers.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials" id="testimonials">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Real Moms, Real Stories</span>
+                <h2 class="section-title">What Moms Are <span class="gradient-text">Saying</span></h2>
+            </div>
+
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">
+                        <span>*</span><span>*</span><span>*</span><span>*</span><span>*</span>
+                    </div>
+                    <p class="testimonial-text">"As a first-time mom, I had so many questions at 2 AM. OMaa was there every single time with helpful, non-judgmental advice. It's like having a wise friend on call 24/7."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar" style="background: linear-gradient(135deg, #ff9a9e, #fecfef)"></div>
+                        <div class="author-info">
+                            <strong>Sarah M.</strong>
+                            <span>New Mom</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">
+                        <span>*</span><span>*</span><span>*</span><span>*</span><span>*</span>
+                    </div>
+                    <p class="testimonial-text">"My toddler's tantrums were overwhelming me. OMaa gave me specific strategies that actually worked. It remembered our previous conversations and asked how things were going!"</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar" style="background: linear-gradient(135deg, #a18cd1, #fbc2eb)"></div>
+                        <div class="author-info">
+                            <strong>Jennifer L.</strong>
+                            <span>Mom of 2</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">
+                        <span>*</span><span>*</span><span>*</span><span>*</span><span>*</span>
+                    </div>
+                    <p class="testimonial-text">"I was struggling with postpartum anxiety and didn't know who to talk to. OMaa listened with such compassion and helped me realize I needed professional support. Literally a lifesaver."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar" style="background: linear-gradient(135deg, #667eea, #764ba2)"></div>
+                        <div class="author-info">
+                            <strong>Maria K.</strong>
+                            <span>Working Mom</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Simple Pricing</span>
+                <h2 class="section-title">Invest In Your <span class="gradient-text">Peace of Mind</span></h2>
+                <p class="section-subtitle">Less than a coffee a day for unlimited parenting support</p>
+            </div>
+
+            <div class="pricing-card">
+                <div class="pricing-badge">Most Popular</div>
+                <div class="pricing-header">
+                    <div class="pricing-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                    </div>
+                    <h3>OMaa Premium</h3>
+                    <p class="pricing-tagline">Your complete parenting companion</p>
+                </div>
+                <div class="pricing-price">
+                    <span class="price-amount">$24</span>
+                    <span class="price-period">/month</span>
+                </div>
+                <ul class="pricing-features">
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                        Unlimited conversations
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                        24/7 instant responses
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                        Personalized memory
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                        All parenting topics
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                        Voice & text input
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                        Cancel anytime
+                    </li>
+                </ul>
+                <button class="pricing-btn" id="subscribeBtn">
+                    Start Free Trial
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                        <polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                </button>
+                <p class="pricing-note">7-day free trial, then $24/month. Cancel anytime.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="final-cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Feel Supported?</h2>
+                <p>Join thousands of moms who've found their parenting partner in OMaa.</p>
+                <a href="chat.html" class="btn btn-white btn-lg">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    Try OMaa Free Now
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">
+                        <div class="logo-icon">
+                            <svg viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="25" cy="25" r="23" fill="url(#logoGrad)"/>
+                                <circle cx="25" cy="20" r="8" fill="white" opacity="0.9"/>
+                                <ellipse cx="25" cy="35" rx="10" ry="8" fill="white" opacity="0.7"/>
+                            </svg>
+                        </div>
+                        <span class="logo-text">OMaa</span>
+                    </a>
+                    <p>Your AI-powered parenting companion, built by OMAA LLC.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Product</h4>
+                        <a href="#features">Features</a>
+                        <a href="#pricing">Pricing</a>
+                        <a href="chat.html">Try Free</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Company</h4>
+                        <a href="#">About OMAA LLC</a>
+                        <a href="#">Contact</a>
+                        <a href="#">Blog</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Legal</h4>
+                        <a href="#">Privacy Policy</a>
+                        <a href="#">Terms of Service</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 OMAA LLC. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
