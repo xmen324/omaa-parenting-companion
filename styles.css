@@ -1846,6 +1846,19 @@ section {
     margin-top: 1rem;
 }
 
+.enroll-back-link {
+    display: inline-block;
+    margin-top: 1.5rem;
+    color: var(--text-light);
+    font-size: 0.9rem;
+    text-decoration: underline;
+    transition: color var(--transition-fast);
+}
+
+.enroll-back-link:hover {
+    color: var(--primary);
+}
+
 /* ============================================
    Trial Badge Styles
    ============================================ */

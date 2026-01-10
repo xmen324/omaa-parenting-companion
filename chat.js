@@ -3,7 +3,7 @@
  * =======================================================
  *
  * Handles the chat interface and AI interactions.
- * Uses server-side API keys - no user configuration needed.
+ * Requires Stripe enrollment before allowing chat access.
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -17,13 +17,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     const paywallModal = document.getElementById('paywallModal');
     const subscribePaywallBtn = document.getElementById('subscribePaywallBtn');
     const trialBadge = document.getElementById('trialBadge');
+    const enrollModal = document.getElementById('enrollModal');
+    const enrollBtn = document.getElementById('enrollBtn');
 
     // Initialize subscription service
     await subscriptionService.init();
-    updateTrialBadge();
 
-    // Load chat history
-    loadChatHistory();
+    // Check if user has valid access
+    const accessCheck = await checkAccess();
+
+    if (!accessCheck.valid) {
+        // User not enrolled - show enrollment modal
+        showEnrollModal();
+        disableChat();
+    } else {
+        // User has access - enable chat
+        enableChat();
+        updateTrialBadge();
+        loadChatHistory();
+    }
 
     // Event Listeners
     sendBtn.addEventListener('click', sendMessage);
@@ -34,9 +46,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    menuBtn.addEventListener('click', () => {
-        mobileMenu.classList.toggle('active');
-    });
+    if (menuBtn) {
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+        });
+    }
 
     if (clearChatBtn) {
         clearChatBtn.addEventListener('click', () => {
@@ -52,14 +66,111 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    // Enroll button handler
+    if (enrollBtn) {
+        enrollBtn.addEventListener('click', async () => {
+            try {
+                enrollBtn.disabled = true;
+                enrollBtn.textContent = 'Loading...';
+                await subscriptionService.startCheckout();
+            } catch (error) {
+                showNotification('Failed to start checkout. Please try again.', 'error');
+                enrollBtn.disabled = false;
+                enrollBtn.textContent = 'Start 7-Day Free Trial';
+            }
+        });
+    }
+
+    // Subscribe button handler (paywall)
+    if (subscribePaywallBtn) {
+        subscribePaywallBtn.addEventListener('click', async () => {
+            try {
+                subscribePaywallBtn.disabled = true;
+                subscribePaywallBtn.textContent = 'Loading...';
+                await subscriptionService.startCheckout();
+            } catch (error) {
+                showNotification('Failed to start checkout. Please try again.', 'error');
+                subscribePaywallBtn.disabled = false;
+                subscribePaywallBtn.textContent = 'Subscribe Now';
+            }
+        });
+    }
+
+    // Close modals on outside click
+    if (paywallModal) {
+        paywallModal.addEventListener('click', (e) => {
+            if (e.target === paywallModal) {
+                hidePaywall();
+            }
+        });
+    }
+
+    /**
+     * Check user access via subscription service
+     */
+    async function checkAccess() {
+        if (!subscriptionService.hasSession()) {
+            return { valid: false, reason: 'not_enrolled' };
+        }
+
+        const access = await subscriptionService.verifyAccess();
+        return access;
+    }
+
+    /**
+     * Show enrollment modal for users without Stripe session
+     */
+    function showEnrollModal() {
+        if (enrollModal) {
+            enrollModal.style.display = 'flex';
+        }
+    }
+
+    /**
+     * Hide enrollment modal
+     */
+    function hideEnrollModal() {
+        if (enrollModal) {
+            enrollModal.style.display = 'none';
+        }
+    }
+
+    /**
+     * Disable chat input
+     */
+    function disableChat() {
+        if (chatInput) {
+            chatInput.disabled = true;
+            chatInput.placeholder = 'Please enroll to start chatting...';
+        }
+        if (sendBtn) {
+            sendBtn.disabled = true;
+        }
+    }
+
+    /**
+     * Enable chat input
+     */
+    function enableChat() {
+        if (chatInput) {
+            chatInput.disabled = false;
+            chatInput.placeholder = 'What would you like to talk about?';
+        }
+        if (sendBtn) {
+            sendBtn.disabled = false;
+        }
+        hideEnrollModal();
+    }
+
     /**
      * Load and display chat history
      */
     function loadChatHistory() {
-        // Display conversation history
-        aiService.conversationHistory.forEach(msg => {
-            addMessageToUI(msg.content, msg.role === 'user');
-        });
+        if (typeof aiService !== 'undefined' && aiService.conversationHistory) {
+            aiService.conversationHistory.forEach(msg => {
+                addMessageToUI(msg.content, msg.role === 'user');
+            });
+        }
     }
 
     /**
@@ -69,21 +180,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         const message = chatInput.value.trim();
         if (!message) return;
 
-        // Check if user can send message
+        // Verify user can still send messages
         if (!subscriptionService.canSendMessage()) {
-            showPaywall(subscriptionService.getPaywallReason());
+            const reason = subscriptionService.getPaywallReason();
+            showPaywall(reason);
             return;
         }
 
         // Add user message to UI
         addMessageToUI(message, true);
         chatInput.value = '';
-
-        // Increment message count for trial users
-        if (!subscriptionService.hasActiveSubscription()) {
-            subscriptionService.incrementMessageCount();
-            updateTrialBadge();
-        }
 
         // Show typing indicator
         const typingIndicator = showTypingIndicator();
@@ -97,6 +203,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Add AI response to UI
             addMessageToUI(response, false);
+
+            // Track message in Stripe (for trial users)
+            if (subscriptionService.isTrialUser()) {
+                const trackResult = await subscriptionService.recordMessage();
+                updateTrialBadge();
+
+                // Check if limit reached after this message
+                if (trackResult.limitReached) {
+                    showPaywall('message_limit');
+                }
+            }
         } catch (error) {
             // Remove typing indicator
             typingIndicator.remove();
@@ -291,15 +408,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     function showPaywall(reason) {
         const message = document.getElementById('paywallMessage');
 
-        if (reason === 'trial_expired') {
-            message.textContent = 'Your 7-day free trial has ended.';
-        } else if (reason === 'message_limit') {
+        if (reason === 'message_limit') {
             message.textContent = 'You\'ve used all 20 free trial messages.';
+        } else if (reason === 'subscription_ended') {
+            message.textContent = 'Your subscription has ended.';
         } else {
             message.textContent = 'Subscribe to continue chatting with MoM.';
         }
 
         paywallModal.style.display = 'flex';
+        disableChat();
     }
 
     /**
@@ -315,9 +433,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     function updateTrialBadge() {
         const countEl = document.getElementById('trialCount');
 
-        if (subscriptionService.hasActiveSubscription()) {
+        if (subscriptionService.isPaidUser()) {
+            // Paid user - hide badge
             trialBadge.style.display = 'none';
-        } else {
+        } else if (subscriptionService.isTrialUser()) {
+            // Trial user - show remaining messages
             const remaining = subscriptionService.getMessagesRemaining();
             countEl.textContent = remaining;
             trialBadge.style.display = 'block';
@@ -333,30 +453,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (remaining <= 0) {
                 trialBadge.style.display = 'none';
             }
+        } else {
+            trialBadge.style.display = 'none';
         }
-    }
-
-    // Subscribe button handler
-    if (subscribePaywallBtn) {
-        subscribePaywallBtn.addEventListener('click', async () => {
-            try {
-                subscribePaywallBtn.disabled = true;
-                subscribePaywallBtn.textContent = 'Loading...';
-                await subscriptionService.startCheckout();
-            } catch (error) {
-                showNotification('Failed to start checkout. Please try again.', 'error');
-                subscribePaywallBtn.disabled = false;
-                subscribePaywallBtn.textContent = 'Start 7-Day Free Trial';
-            }
-        });
-    }
-
-    // Close paywall modal on outside click
-    if (paywallModal) {
-        paywallModal.addEventListener('click', (e) => {
-            if (e.target === paywallModal) {
-                hidePaywall();
-            }
-        });
     }
 });

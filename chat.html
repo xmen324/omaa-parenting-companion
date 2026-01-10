@@ -87,7 +87,43 @@
         </div>
     </main>
 
-    <!-- Paywall Modal -->
+    <!-- Enrollment Modal (shown to users who haven't signed up) -->
+    <div id="enrollModal" class="paywall-modal">
+        <div class="paywall-content">
+            <div class="paywall-icon">
+                <svg viewBox="0 0 100 100" width="64" height="64">
+                    <defs>
+                        <linearGradient id="enrollGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#ff6b9d"/>
+                            <stop offset="100%" stop-color="#c44569"/>
+                        </linearGradient>
+                    </defs>
+                    <circle cx="50" cy="50" r="45" fill="url(#enrollGrad)"/>
+                    <circle cx="50" cy="40" r="15" fill="white" opacity="0.9"/>
+                    <ellipse cx="50" cy="65" rx="18" ry="14" fill="white" opacity="0.7"/>
+                </svg>
+            </div>
+            <h2>Start Your Free Trial</h2>
+            <p id="enrollMessage">Get 7 days free with 20 messages to try OMaa!</p>
+            <ul class="paywall-features">
+                <li>7-day free trial period</li>
+                <li>20 messages to explore</li>
+                <li>24/7 parenting support</li>
+                <li>Cancel anytime - no charge if you cancel within 7 days</li>
+            </ul>
+            <div class="paywall-price">
+                <span class="price">$0</span>
+                <span class="period">for 7 days</span>
+            </div>
+            <button id="enrollBtn" class="paywall-btn">
+                Start 7-Day Free Trial
+            </button>
+            <p class="paywall-note">Then $24/month after trial. Cancel anytime.</p>
+            <a href="index.html" class="enroll-back-link">Back to homepage</a>
+        </div>
+    </div>
+
+    <!-- Paywall Modal (shown when trial limits reached) -->
     <div id="paywallModal" class="paywall-modal">
         <div class="paywall-content">
             <div class="paywall-icon">
@@ -109,9 +145,9 @@
                 <span class="period">/month</span>
             </div>
             <button id="subscribePaywallBtn" class="paywall-btn">
-                Start 7-Day Free Trial
+                Subscribe Now
             </button>
-            <p class="paywall-note">Free for 7 days, then $24/month. Cancel anytime.</p>
+            <p class="paywall-note">$24/month. Cancel anytime.</p>
         </div>
     </div>
 

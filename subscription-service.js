@@ -1,28 +1,34 @@
 /**
  * Subscription Service for OMaa
- * Manages trial limits and subscription status
+ * Manages subscription verification and message tracking via Stripe
+ *
+ * Flow:
+ * 1. User must complete Stripe Checkout to access chat
+ * 2. Session ID stored in localStorage after checkout
+ * 3. All access verification done via server API (Stripe)
+ * 4. Message count tracked in Stripe customer metadata
  */
 
 const SUBSCRIPTION_CONFIG = {
     TRIAL_MESSAGE_LIMIT: 20,
-    TRIAL_DAYS: 7,
     STORAGE_KEYS: {
-        MESSAGE_COUNT: 'omaa_trial_message_count',
-        SESSION_ID: 'omaa_session_id',
-        SUBSCRIPTION_STATUS: 'omaa_subscription_status',
-        TRIAL_START: 'omaa_trial_start'
+        SESSION_ID: 'omaa_session_id'
     }
 };
 
 class SubscriptionService {
     constructor() {
         this.sessionId = null;
-        this.subscriptionStatus = null;
+        this.accessData = null;
         this.initialized = false;
     }
 
+    /**
+     * Initialize the subscription service
+     * Checks URL for session_id from Stripe redirect
+     */
     async init() {
-        if (this.initialized) return;
+        if (this.initialized) return this.accessData;
 
         // Check for session_id in URL (after Stripe redirect)
         const urlParams = new URLSearchParams(window.location.search);
@@ -30,111 +36,119 @@ class SubscriptionService {
         const status = urlParams.get('status');
 
         if (sessionId && status === 'success') {
+            // Store session ID from successful checkout
             localStorage.setItem(SUBSCRIPTION_CONFIG.STORAGE_KEYS.SESSION_ID, sessionId);
             this.sessionId = sessionId;
             // Clean URL
             window.history.replaceState({}, '', window.location.pathname);
         } else {
+            // Try to get existing session ID
             this.sessionId = localStorage.getItem(SUBSCRIPTION_CONFIG.STORAGE_KEYS.SESSION_ID);
         }
 
-        // Initialize trial start date if not set
-        if (!localStorage.getItem(SUBSCRIPTION_CONFIG.STORAGE_KEYS.TRIAL_START)) {
-            localStorage.setItem(SUBSCRIPTION_CONFIG.STORAGE_KEYS.TRIAL_START, Date.now().toString());
-        }
-
-        // Check subscription status if we have a session
-        if (this.sessionId) {
-            await this.checkSubscriptionStatus();
-        }
-
         this.initialized = true;
+        return this.accessData;
     }
 
-    async checkSubscriptionStatus() {
+    /**
+     * Check if user has a stored session
+     */
+    hasSession() {
+        return !!this.sessionId;
+    }
+
+    /**
+     * Verify access with the server
+     * Returns access data including subscription status and messages remaining
+     */
+    async verifyAccess() {
         if (!this.sessionId) {
             return {
-                status: 'trial',
-                canChat: this.canSendMessage(),
-                messagesRemaining: this.getMessagesRemaining()
+                valid: false,
+                error: 'No session - user must enroll first'
             };
         }
 
         try {
-            const response = await fetch(`/api/subscription-status?session_id=${this.sessionId}`);
+            const response = await fetch(`/api/verify-session?session_id=${this.sessionId}`);
             const data = await response.json();
-            this.subscriptionStatus = data;
-            localStorage.setItem(
-                SUBSCRIPTION_CONFIG.STORAGE_KEYS.SUBSCRIPTION_STATUS,
-                JSON.stringify(data)
-            );
+            this.accessData = data;
             return data;
         } catch (error) {
-            console.error('Failed to check subscription:', error);
-            // Fall back to cached status
-            const cached = localStorage.getItem(SUBSCRIPTION_CONFIG.STORAGE_KEYS.SUBSCRIPTION_STATUS);
-            if (cached) {
-                this.subscriptionStatus = JSON.parse(cached);
-            }
-            return this.subscriptionStatus;
+            console.error('Failed to verify access:', error);
+            return {
+                valid: false,
+                error: error.message
+            };
         }
     }
 
-    getMessageCount() {
-        const count = localStorage.getItem(SUBSCRIPTION_CONFIG.STORAGE_KEYS.MESSAGE_COUNT);
-        return count ? parseInt(count, 10) : 0;
-    }
-
-    incrementMessageCount() {
-        const count = this.getMessageCount() + 1;
-        localStorage.setItem(SUBSCRIPTION_CONFIG.STORAGE_KEYS.MESSAGE_COUNT, count.toString());
-        return count;
-    }
-
-    getMessagesRemaining() {
-        return Math.max(0, SUBSCRIPTION_CONFIG.TRIAL_MESSAGE_LIMIT - this.getMessageCount());
-    }
-
-    getTrialDaysRemaining() {
-        const trialStart = localStorage.getItem(SUBSCRIPTION_CONFIG.STORAGE_KEYS.TRIAL_START);
-        if (!trialStart) return SUBSCRIPTION_CONFIG.TRIAL_DAYS;
-
-        const trialEndTime = parseInt(trialStart, 10) + (SUBSCRIPTION_CONFIG.TRIAL_DAYS * 24 * 60 * 60 * 1000);
-        const remaining = trialEndTime - Date.now();
-        return Math.max(0, Math.ceil(remaining / (24 * 60 * 60 * 1000)));
-    }
-
-    isTrialExpired() {
-        const trialStart = localStorage.getItem(SUBSCRIPTION_CONFIG.STORAGE_KEYS.TRIAL_START);
-        if (!trialStart) return false;
-
-        const trialEndTime = parseInt(trialStart, 10) + (SUBSCRIPTION_CONFIG.TRIAL_DAYS * 24 * 60 * 60 * 1000);
-        return Date.now() > trialEndTime;
-    }
-
+    /**
+     * Check if user can send a message
+     * Must be called after verifyAccess()
+     */
     canSendMessage() {
-        // If has active subscription, always allow
-        if (this.hasActiveSubscription()) {
-            return true;
-        }
-
-        // Check trial limits
-        const hasMessages = this.getMessagesRemaining() > 0;
-        const trialValid = !this.isTrialExpired();
-
-        return hasMessages && trialValid;
+        if (!this.accessData) return false;
+        return this.accessData.valid && this.accessData.canChat;
     }
 
-    getPaywallReason() {
-        if (this.isTrialExpired()) {
-            return 'trial_expired';
+    /**
+     * Get messages remaining for trial users
+     */
+    getMessagesRemaining() {
+        if (!this.accessData) return 0;
+        if (this.accessData.isPaid) return 'unlimited';
+        return this.accessData.messagesRemaining || 0;
+    }
+
+    /**
+     * Record a message sent - increments count in Stripe metadata
+     */
+    async recordMessage() {
+        if (!this.sessionId) {
+            return { error: 'No session' };
         }
-        if (this.getMessagesRemaining() <= 0) {
+
+        try {
+            const response = await fetch('/api/track-message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session_id: this.sessionId })
+            });
+            const data = await response.json();
+
+            // Update local access data
+            if (this.accessData && data.success) {
+                this.accessData.messagesUsed = data.messagesUsed;
+                this.accessData.messagesRemaining = data.messagesRemaining;
+                this.accessData.canChat = !data.limitReached;
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Failed to track message:', error);
+            return { error: error.message };
+        }
+    }
+
+    /**
+     * Get the reason for paywall (for trial users)
+     */
+    getPaywallReason() {
+        if (!this.accessData) return 'not_enrolled';
+        if (!this.accessData.valid) return 'not_enrolled';
+        if (this.accessData.messagesRemaining <= 0 && this.accessData.isTrialing) {
             return 'message_limit';
+        }
+        if (this.accessData.status === 'canceled' || this.accessData.status === 'past_due') {
+            return 'subscription_ended';
         }
         return null;
     }
 
+    /**
+     * Start Stripe checkout process
+     */
     async startCheckout() {
         try {
             const response = await fetch('/api/create-checkout-session', {
@@ -146,7 +160,7 @@ class SubscriptionService {
             if (data.url) {
                 window.location.href = data.url;
             } else {
-                throw new Error('No checkout URL received');
+                throw new Error(data.error || 'No checkout URL received');
             }
         } catch (error) {
             console.error('Failed to start checkout:', error);
@@ -154,26 +168,36 @@ class SubscriptionService {
         }
     }
 
-    hasActiveSubscription() {
-        return this.subscriptionStatus &&
-            ['trialing', 'active'].includes(this.subscriptionStatus.status);
+    /**
+     * Check if user has active paid subscription (not trial)
+     */
+    isPaidUser() {
+        return this.accessData && this.accessData.isPaid;
     }
 
-    getStatus() {
-        if (this.hasActiveSubscription()) {
-            return {
-                type: 'subscribed',
-                status: this.subscriptionStatus.status,
-                label: this.subscriptionStatus.status === 'trialing' ? 'Trial Active' : 'Subscribed'
-            };
-        }
+    /**
+     * Check if user is on trial
+     */
+    isTrialUser() {
+        return this.accessData && this.accessData.isTrialing;
+    }
 
-        return {
-            type: 'trial',
-            messagesRemaining: this.getMessagesRemaining(),
-            daysRemaining: this.getTrialDaysRemaining(),
-            canChat: this.canSendMessage()
-        };
+    /**
+     * Get trial end date
+     */
+    getTrialEndDate() {
+        if (!this.accessData || !this.accessData.trialEnd) return null;
+        return new Date(this.accessData.trialEnd);
+    }
+
+    /**
+     * Clear session (logout)
+     */
+    clearSession() {
+        localStorage.removeItem(SUBSCRIPTION_CONFIG.STORAGE_KEYS.SESSION_ID);
+        this.sessionId = null;
+        this.accessData = null;
+        this.initialized = false;
     }
 }
 
