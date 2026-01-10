@@ -221,7 +221,8 @@ img {
     gap: 10px;
 }
 
-.logo-icon {
+.logo-icon,
+.logo-img {
     width: 44px;
     height: 44px;
 }
@@ -298,7 +299,8 @@ img {
     box-shadow: 0 15px 40px rgba(255, 107, 157, 0.4);
 }
 
-.mobile-menu-btn {
+.mobile-menu-btn,
+.menu-btn {
     display: none;
     flex-direction: column;
     gap: 5px;
@@ -308,7 +310,8 @@ img {
     cursor: pointer;
 }
 
-.mobile-menu-btn span {
+.mobile-menu-btn span,
+.menu-btn span {
     display: block;
     width: 24px;
     height: 2px;
@@ -1196,6 +1199,10 @@ section {
 
 .chat-page .navbar {
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
 }
 
 .chat-title {
