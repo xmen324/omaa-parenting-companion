@@ -136,7 +136,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
         // Use annual price if specified, otherwise default to monthly
         // Environment variables: STRIPE_PRICE_ID (monthly), STRIPE_ANNUAL_PRICE_ID (annual)
         const priceId = plan === 'annual'
-            ? (process.env.STRIPE_ANNUAL_PRICE_ID || process.env.STRIPE_PRICE_ID_A_50)
+            ? (process.env.STRIPE_ANNUAL_PRICE_ID || process.env.STRIPE_PRICE_ID_A_72)
             : (process.env.STRIPE_PRICE_ID || process.env.STRIPE_PRICE_ID_M_699);
 
         if (!priceId) {
