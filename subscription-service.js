@@ -1,16 +1,15 @@
 /**
  * Subscription Service for OMaa
- * Manages subscription verification and message tracking via Stripe
+ * Manages subscription verification via Stripe
  *
  * Flow:
  * 1. User must complete Stripe Checkout to access chat
  * 2. Session ID stored in localStorage after checkout
  * 3. All access verification done via server API (Stripe)
- * 4. Message count tracked in Stripe customer metadata
+ * 4. Unlimited messages during trial and after subscription
  */
 
 const SUBSCRIPTION_CONFIG = {
-    TRIAL_MESSAGE_LIMIT: 20,
     STORAGE_KEYS: {
         SESSION_ID: 'omaa_session_id'
     }
@@ -59,7 +58,7 @@ class SubscriptionService {
 
     /**
      * Verify access with the server
-     * Returns access data including subscription status and messages remaining
+     * Returns access data including subscription status
      */
     async verifyAccess() {
         if (!this.sessionId) {
@@ -93,53 +92,11 @@ class SubscriptionService {
     }
 
     /**
-     * Get messages remaining for trial users
-     */
-    getMessagesRemaining() {
-        if (!this.accessData) return 0;
-        if (this.accessData.isPaid) return 'unlimited';
-        return this.accessData.messagesRemaining || 0;
-    }
-
-    /**
-     * Record a message sent - increments count in Stripe metadata
-     */
-    async recordMessage() {
-        if (!this.sessionId) {
-            return { error: 'No session' };
-        }
-
-        try {
-            const response = await fetch('/api/track-message', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ session_id: this.sessionId })
-            });
-            const data = await response.json();
-
-            // Update local access data
-            if (this.accessData && data.success) {
-                this.accessData.messagesUsed = data.messagesUsed;
-                this.accessData.messagesRemaining = data.messagesRemaining;
-                this.accessData.canChat = !data.limitReached;
-            }
-
-            return data;
-        } catch (error) {
-            console.error('Failed to track message:', error);
-            return { error: error.message };
-        }
-    }
-
-    /**
-     * Get the reason for paywall (for trial users)
+     * Get the reason for paywall
      */
     getPaywallReason() {
         if (!this.accessData) return 'not_enrolled';
         if (!this.accessData.valid) return 'not_enrolled';
-        if (this.accessData.messagesRemaining <= 0 && this.accessData.isTrialing) {
-            return 'message_limit';
-        }
         if (this.accessData.status === 'canceled' || this.accessData.status === 'past_due') {
             return 'subscription_ended';
         }
@@ -148,12 +105,14 @@ class SubscriptionService {
 
     /**
      * Start Stripe checkout process
+     * @param {string} plan - 'monthly' or 'annual'
      */
-    async startCheckout() {
+    async startCheckout(plan = 'monthly') {
         try {
             const response = await fetch('/api/create-checkout-session', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ plan })
             });
             const data = await response.json();
 

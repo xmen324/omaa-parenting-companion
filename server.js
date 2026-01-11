@@ -123,9 +123,6 @@ async function callAnthropic(messages) {
     };
 }
 
-// Constants for trial limits
-const TRIAL_MESSAGE_LIMIT = 20;
-
 // Stripe: Create Checkout Session
 app.post('/api/create-checkout-session', async (req, res) => {
     if (!stripe) {
@@ -134,12 +131,23 @@ app.post('/api/create-checkout-session', async (req, res) => {
 
     try {
         const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
+        const { plan } = req.body; // 'monthly' or 'annual'
+
+        // Use annual price if specified, otherwise default to monthly
+        // Environment variables: STRIPE_PRICE_ID (monthly), STRIPE_ANNUAL_PRICE_ID (annual)
+        const priceId = plan === 'annual'
+            ? (process.env.STRIPE_ANNUAL_PRICE_ID || process.env.STRIPE_PRICE_ID_A_50)
+            : (process.env.STRIPE_PRICE_ID || process.env.STRIPE_PRICE_ID_M_699);
+
+        if (!priceId) {
+            return res.status(500).json({ error: 'Price ID not configured' });
+        }
 
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             mode: 'subscription',
             line_items: [{
-                price: process.env.STRIPE_PRICE_ID,
+                price: priceId,
                 quantity: 1,
             }],
             subscription_data: {
@@ -156,7 +164,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
     }
 });
 
-// Stripe: Verify Session - Check if user has valid subscription and get message count
+// Stripe: Verify Session - Check if user has valid subscription
 app.get('/api/verify-session', async (req, res) => {
     if (!stripe) {
         return res.status(500).json({ valid: false, error: 'Stripe not configured' });
@@ -182,11 +190,6 @@ app.get('/api/verify-session', async (req, res) => {
             });
         }
 
-        // Get customer to read metadata
-        const customer = await stripe.customers.retrieve(session.customer);
-        const messagesUsed = parseInt(customer.metadata.omaa_messages_used || '0', 10);
-        const messagesRemaining = Math.max(0, TRIAL_MESSAGE_LIMIT - messagesUsed);
-
         // Get subscription status
         if (!session.subscription) {
             return res.json({
@@ -200,9 +203,8 @@ app.get('/api/verify-session', async (req, res) => {
         const isActive = subscription.status === 'active';
         const isPaid = isActive && !isTrialing;
 
-        // For paid users, unlimited messages
-        // For trial users, check message limit
-        const canChat = isPaid || (isTrialing && messagesRemaining > 0);
+        // Allow chat for both trial and paid users (no message limit)
+        const canChat = isTrialing || isActive;
 
         res.json({
             valid: true,
@@ -211,8 +213,6 @@ app.get('/api/verify-session', async (req, res) => {
             status: subscription.status,
             isTrialing,
             isPaid,
-            messagesUsed,
-            messagesRemaining: isPaid ? 'unlimited' : messagesRemaining,
             canChat,
             trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null
         });
@@ -222,53 +222,6 @@ app.get('/api/verify-session', async (req, res) => {
             valid: false,
             error: error.message
         });
-    }
-});
-
-// Stripe: Track Message - Increment message count in customer metadata
-app.post('/api/track-message', async (req, res) => {
-    if (!stripe) {
-        return res.status(500).json({ error: 'Stripe not configured' });
-    }
-
-    const { session_id } = req.body;
-
-    if (!session_id) {
-        return res.status(400).json({ error: 'Session ID required' });
-    }
-
-    try {
-        // Get the checkout session to find customer
-        const session = await stripe.checkout.sessions.retrieve(session_id);
-
-        if (!session.customer) {
-            return res.status(400).json({ error: 'No customer found' });
-        }
-
-        // Get current customer metadata
-        const customer = await stripe.customers.retrieve(session.customer);
-        const currentCount = parseInt(customer.metadata.omaa_messages_used || '0', 10);
-        const newCount = currentCount + 1;
-
-        // Update customer metadata with new count
-        await stripe.customers.update(session.customer, {
-            metadata: {
-                ...customer.metadata,
-                omaa_messages_used: newCount.toString()
-            }
-        });
-
-        const messagesRemaining = Math.max(0, TRIAL_MESSAGE_LIMIT - newCount);
-
-        res.json({
-            success: true,
-            messagesUsed: newCount,
-            messagesRemaining,
-            limitReached: messagesRemaining <= 0
-        });
-    } catch (error) {
-        console.error('Track message error:', error);
-        res.status(500).json({ error: error.message });
     }
 });
 

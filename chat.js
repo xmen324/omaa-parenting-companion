@@ -16,9 +16,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const clearChatBtn = document.getElementById('clearChatBtn');
     const paywallModal = document.getElementById('paywallModal');
     const subscribePaywallBtn = document.getElementById('subscribePaywallBtn');
-    const trialBadge = document.getElementById('trialBadge');
     const enrollModal = document.getElementById('enrollModal');
     const enrollBtn = document.getElementById('enrollBtn');
+
+    // Avatar SVGs
+    const userAvatarSvg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='userGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23667eea'/%3E%3Cstop offset='100%25' stop-color='%23764ba2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='48' fill='url(%23userGrad)'/%3E%3Ccircle cx='50' cy='40' r='18' fill='white' opacity='0.9'/%3E%3Cellipse cx='50' cy='75' rx='25' ry='18' fill='white' opacity='0.7'/%3E%3C/svg%3E`;
+
+    const momAvatarSvg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='momGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ff6b9d'/%3E%3Cstop offset='100%25' stop-color='%23c44569'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='48' fill='url(%23momGrad)'/%3E%3Ccircle cx='50' cy='40' r='18' fill='white' opacity='0.9'/%3E%3Cellipse cx='50' cy='75' rx='25' ry='18' fill='white' opacity='0.7'/%3E%3C/svg%3E`;
 
     // Initialize subscription service
     await subscriptionService.init();
@@ -33,7 +37,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
         // User has access - enable chat
         enableChat();
-        updateTrialBadge();
         loadChatHistory();
     }
 
@@ -72,7 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             try {
                 enrollBtn.disabled = true;
                 enrollBtn.textContent = 'Loading...';
-                await subscriptionService.startCheckout();
+                await subscriptionService.startCheckout('monthly');
             } catch (error) {
                 showNotification('Failed to start checkout. Please try again.', 'error');
                 enrollBtn.disabled = false;
@@ -87,7 +90,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             try {
                 subscribePaywallBtn.disabled = true;
                 subscribePaywallBtn.textContent = 'Loading...';
-                await subscriptionService.startCheckout();
+                await subscriptionService.startCheckout('monthly');
             } catch (error) {
                 showNotification('Failed to start checkout. Please try again.', 'error');
                 subscribePaywallBtn.disabled = false;
@@ -203,17 +206,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Add AI response to UI
             addMessageToUI(response, false);
-
-            // Track message in Stripe (for trial users)
-            if (subscriptionService.isTrialUser()) {
-                const trackResult = await subscriptionService.recordMessage();
-                updateTrialBadge();
-
-                // Check if limit reached after this message
-                if (trackResult.limitReached) {
-                    showPaywall('message_limit');
-                }
-            }
         } catch (error) {
             // Remove typing indicator
             typingIndicator.remove();
@@ -233,20 +225,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
 
-        const avatar = isUser ?
-            'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="40" r="25" fill="%23667"%3E%3C/circle%3E%3Ccircle cx="50" cy="100" r="35" fill="%23667"%3E%3C/circle%3E%3C/svg%3E' :
-            'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="35" r="20" fill="%23f4a8a8"/%3E%3Ccircle cx="50" cy="70" r="12" fill="%23ffd4d4"/%3E%3C/svg%3E';
+        const avatar = isUser ? userAvatarSvg : momAvatarSvg;
+        const senderName = isUser ? 'You' : 'MoM';
 
         // Format content with markdown-like parsing
         const formattedContent = formatMessageContent(content);
 
         messageDiv.innerHTML = `
             <div class="message-avatar">
-                <img src="${avatar}" alt="${isUser ? 'You' : 'OMaa'}">
+                <img src="${avatar}" alt="${senderName}">
             </div>
             <div class="message-content">
                 <div class="message-header">
-                    <span class="message-sender">${isUser ? 'You' : 'OMaa'}</span>
+                    <span class="message-sender">${senderName}</span>
                     ${!isUser ? '<span class="thinking-label">Thought</span>' : ''}
                 </div>
                 <div class="message-text ${isError ? 'error-message' : ''}">
@@ -322,11 +313,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         typingDiv.id = 'typing-indicator';
         typingDiv.innerHTML = `
             <div class="message-avatar">
-                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='35' r='20' fill='%23f4a8a8'/%3E%3Ccircle cx='50' cy='70' r='12' fill='%23ffd4d4'/%3E%3C/svg%3E" alt="OMaa">
+                <img src="${momAvatarSvg}" alt="MoM">
             </div>
             <div class="message-content">
                 <div class="message-header">
-                    <span class="message-sender">OMaa</span>
+                    <span class="message-sender">MoM</span>
                     <span class="thinking-label">Thinking...</span>
                 </div>
                 <div class="typing-indicator">
@@ -408,9 +399,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function showPaywall(reason) {
         const message = document.getElementById('paywallMessage');
 
-        if (reason === 'message_limit') {
-            message.textContent = 'You\'ve used all 20 free trial messages.';
-        } else if (reason === 'subscription_ended') {
+        if (reason === 'subscription_ended') {
             message.textContent = 'Your subscription has ended.';
         } else {
             message.textContent = 'Subscribe to continue chatting with MoM.';
@@ -425,36 +414,5 @@ document.addEventListener('DOMContentLoaded', async () => {
      */
     function hidePaywall() {
         paywallModal.style.display = 'none';
-    }
-
-    /**
-     * Update trial badge display
-     */
-    function updateTrialBadge() {
-        const countEl = document.getElementById('trialCount');
-
-        if (subscriptionService.isPaidUser()) {
-            // Paid user - hide badge
-            trialBadge.style.display = 'none';
-        } else if (subscriptionService.isTrialUser()) {
-            // Trial user - show remaining messages
-            const remaining = subscriptionService.getMessagesRemaining();
-            countEl.textContent = remaining;
-            trialBadge.style.display = 'block';
-
-            // Add warning style when low
-            if (remaining <= 5) {
-                trialBadge.classList.add('warning');
-            } else {
-                trialBadge.classList.remove('warning');
-            }
-
-            // Hide badge if no messages left (paywall will show)
-            if (remaining <= 0) {
-                trialBadge.style.display = 'none';
-            }
-        } else {
-            trialBadge.style.display = 'none';
-        }
     }
 });

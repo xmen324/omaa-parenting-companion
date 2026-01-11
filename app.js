@@ -80,6 +80,9 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             e.stopPropagation();
 
+            // Get plan from data attribute (default to monthly)
+            const plan = btn.dataset.plan || 'monthly';
+
             // Disable button and show loading state
             const originalText = btn.innerHTML;
             btn.innerHTML = 'Loading...';
@@ -88,7 +91,8 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const response = await fetch('/api/create-checkout-session', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plan })
                 });
                 const data = await response.json();
 
