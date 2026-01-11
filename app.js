@@ -1,5 +1,5 @@
 /**
- * OMaa - AI Parenting Companion
+ * OMaa - Product Hub
  * Main Application JavaScript
  * ============================
  */
@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
     const mobileMenu = document.getElementById('mobileMenu');
     const navbar = document.querySelector('.navbar');
-    const subscribeBtn = document.getElementById('subscribeBtn');
 
     // Mobile menu toggle
     if (mobileMenuBtn && mobileMenu) {
@@ -73,43 +72,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Subscribe button click handlers
-    const subscribeButtons = document.querySelectorAll('.subscribe-btn');
-    subscribeButtons.forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-
-            // Get plan from data attribute (default to monthly)
-            const plan = btn.dataset.plan || 'monthly';
-
-            // Disable button and show loading state
-            const originalText = btn.innerHTML;
-            btn.innerHTML = 'Loading...';
-            btn.style.pointerEvents = 'none';
-
-            try {
-                const response = await fetch('/api/create-checkout-session', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ plan })
-                });
-                const data = await response.json();
-
-                if (data.url) {
-                    window.location.href = data.url;
-                } else {
-                    throw new Error(data.error || 'Failed to create checkout session');
-                }
-            } catch (error) {
-                console.error('Checkout error:', error);
-                alert('Unable to start checkout. Please try again.');
-                btn.innerHTML = originalText;
-                btn.style.pointerEvents = 'auto';
-            }
-        });
-    });
-
     // Intersection Observer for animations
     const observerOptions = {
         threshold: 0.1,
@@ -127,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, observerOptions);
 
     // Observe elements for animation
-    const animateElements = document.querySelectorAll('.feature-card, .category-card, .testimonial-card, .step, .pricing-card');
+    const animateElements = document.querySelectorAll('.feature-card, .product-card, .category-card, .testimonial-card, .step, .pricing-card');
     animateElements.forEach(el => {
         el.style.opacity = '0';
         el.style.transform = 'translateY(30px)';
@@ -145,14 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.head.appendChild(style);
 
-    // Chat preview typing animation (hero section)
-    const chatPreview = document.querySelector('.chat-preview');
-    if (chatPreview) {
-        setTimeout(() => {
-            chatPreview.style.animation = 'fadeInUp 0.8s ease forwards';
-        }, 500);
-    }
-
     // Parallax effect for floating shapes
     window.addEventListener('scroll', () => {
         const scrolled = window.pageYOffset;
@@ -164,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Add ripple effect to buttons
-    document.querySelectorAll('.btn, .nav-btn, .pricing-btn').forEach(button => {
+    document.querySelectorAll('.btn, .nav-btn').forEach(button => {
         button.addEventListener('click', function(e) {
             const rect = this.getBoundingClientRect();
             const ripple = document.createElement('span');
@@ -212,35 +166,5 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.head.appendChild(rippleStyle);
 
-    // Counter animation for stats (if present)
-    const animateCounter = (element, target, duration = 2000) => {
-        let start = 0;
-        const increment = target / (duration / 16);
-        const timer = setInterval(() => {
-            start += increment;
-            if (start >= target) {
-                element.textContent = target.toLocaleString();
-                clearInterval(timer);
-            } else {
-                element.textContent = Math.floor(start).toLocaleString();
-            }
-        }, 16);
-    };
-
-    // Initialize counters when visible
-    const counters = document.querySelectorAll('[data-count]');
-    if (counters.length > 0) {
-        const counterObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const target = parseInt(entry.target.dataset.count);
-                    animateCounter(entry.target, target);
-                    counterObserver.unobserve(entry.target);
-                }
-            });
-        });
-        counters.forEach(counter => counterObserver.observe(counter));
-    }
-
-    console.log('OMaa website initialized successfully!');
+    console.log('OMaa Product Hub initialized successfully!');
 });

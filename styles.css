@@ -1948,3 +1948,319 @@ section {
         font-size: 2.5rem;
     }
 }
+
+/* ============================================
+   Product Hub Styles
+   ============================================ */
+
+/* Hero Hub (Centered) */
+.hero-hub {
+    min-height: 70vh;
+    text-align: center;
+}
+
+.hero-hub .hero-content {
+    max-width: 800px;
+}
+
+.hero-content-centered {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.hero-content-centered .hero-cta {
+    justify-content: center;
+    margin-bottom: 0;
+}
+
+/* Products Section */
+.products-section {
+    background: white;
+    padding: 100px 0;
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+/* Product Card */
+.product-card {
+    display: flex;
+    flex-direction: column;
+    padding: 40px 32px;
+    background: var(--bg-light);
+    border-radius: var(--radius-xl);
+    transition: all var(--transition-normal);
+    position: relative;
+    overflow: hidden;
+    border: 2px solid transparent;
+    text-decoration: none;
+    color: inherit;
+}
+
+.product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-xl);
+}
+
+.product-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    transition: var(--transition-normal);
+}
+
+/* Product Card Colors */
+.product-card-pink::before {
+    background: linear-gradient(90deg, #ff6b9d, #c44569);
+}
+
+.product-card-pink:hover {
+    border-color: rgba(255, 107, 157, 0.3);
+}
+
+.product-card-pink .product-icon {
+    background: linear-gradient(135deg, rgba(255, 107, 157, 0.15), rgba(196, 69, 105, 0.1));
+    color: var(--primary);
+}
+
+.product-card-blue::before {
+    background: linear-gradient(90deg, #4a90d9, #2563eb);
+}
+
+.product-card-blue:hover {
+    border-color: rgba(74, 144, 217, 0.3);
+}
+
+.product-card-blue .product-icon {
+    background: linear-gradient(135deg, rgba(74, 144, 217, 0.15), rgba(37, 99, 235, 0.1));
+    color: #4a90d9;
+}
+
+.product-card-purple::before {
+    background: linear-gradient(90deg, #9b59b6, #7c3aed);
+}
+
+.product-card-purple:hover {
+    border-color: rgba(155, 89, 182, 0.3);
+}
+
+.product-card-purple .product-icon {
+    background: linear-gradient(135deg, rgba(155, 89, 182, 0.15), rgba(124, 58, 237, 0.1));
+    color: #9b59b6;
+}
+
+.product-card-green::before {
+    background: linear-gradient(90deg, #5cb85c, #059669);
+}
+
+.product-card-green:hover {
+    border-color: rgba(92, 184, 92, 0.3);
+}
+
+.product-card-green .product-icon {
+    background: linear-gradient(135deg, rgba(92, 184, 92, 0.15), rgba(5, 150, 105, 0.1));
+    color: #5cb85c;
+}
+
+/* Product Icon */
+.product-icon {
+    width: 72px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-lg);
+    margin-bottom: 24px;
+}
+
+.product-icon svg {
+    width: 36px;
+    height: 36px;
+}
+
+/* Product Content */
+.product-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text-dark);
+}
+
+.product-description {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--text-light);
+    margin-bottom: 24px;
+    flex-grow: 1;
+}
+
+/* Product CTA */
+.product-cta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: auto;
+}
+
+.product-btn {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary);
+    transition: var(--transition-fast);
+}
+
+.product-card-blue .product-btn {
+    color: #4a90d9;
+}
+
+.product-card-purple .product-btn {
+    color: #9b59b6;
+}
+
+.product-card-green .product-btn {
+    color: #5cb85c;
+}
+
+.product-cta svg {
+    color: var(--primary);
+    transition: var(--transition-fast);
+}
+
+.product-card:hover .product-cta svg {
+    transform: translateX(4px);
+}
+
+.product-card-green:hover .product-cta svg {
+    color: #5cb85c;
+}
+
+/* Coming Soon / In Building State */
+.product-card-coming-soon {
+    cursor: default;
+}
+
+.product-card-coming-soon:hover {
+    transform: translateY(-4px);
+}
+
+.in-building-badge {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: var(--radius-full);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.product-cta-disabled {
+    opacity: 0.6;
+}
+
+.product-cta-disabled .product-btn {
+    color: var(--text-light);
+}
+
+/* Why OMaa Section */
+.why-omaa {
+    background: linear-gradient(180deg, var(--bg-cream) 0%, white 100%);
+}
+
+.features-grid-compact {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+/* Contact Section */
+.contact-section {
+    padding: 100px 0;
+    background: var(--primary-gradient);
+}
+
+.contact-section .cta-content {
+    text-align: center;
+}
+
+.contact-section .cta-content h2 {
+    font-size: 2.5rem;
+    color: white;
+    margin-bottom: 16px;
+}
+
+.contact-section .cta-content p {
+    font-size: 1.15rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 32px;
+}
+
+/* Responsive Product Grid */
+@media (max-width: 900px) {
+    .products-grid {
+        grid-template-columns: 1fr;
+        max-width: 500px;
+    }
+
+    .features-grid-compact {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-hub {
+        min-height: 60vh;
+        padding: 100px 24px 60px;
+    }
+
+    .hero-hub .hero-title {
+        font-size: 2rem;
+    }
+
+    .product-card {
+        padding: 32px 24px;
+    }
+
+    .product-name {
+        font-size: 1.25rem;
+    }
+
+    .features-grid-compact {
+        grid-template-columns: 1fr;
+    }
+
+    .contact-section .cta-content h2 {
+        font-size: 1.75rem;
+    }
+}
+
+/* Clear Chat Button */
+.clear-chat-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: var(--radius-md);
+    color: var(--text-light);
+    transition: var(--transition-fast);
+}
+
+.clear-chat-btn:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.clear-chat-btn svg {
+    display: block;
+}
