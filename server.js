@@ -327,9 +327,29 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// Serve index.html for all other routes
+// Serve different index based on hostname
+app.get('/', (req, res) => {
+    const host = req.hostname || req.headers.host || '';
+
+    // If accessing via momai subdomain, serve MoM AI landing page
+    if (host.includes('momai.')) {
+        res.sendFile(path.join(__dirname, 'momai-index.html'));
+    } else {
+        // Otherwise serve product hub
+        res.sendFile(path.join(__dirname, 'index.html'));
+    }
+});
+
+// Serve index.html for all other routes (fallback)
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    const host = req.hostname || req.headers.host || '';
+
+    // If accessing via momai subdomain, serve MoM AI landing page
+    if (host.includes('momai.') && !req.path.includes('.')) {
+        res.sendFile(path.join(__dirname, 'momai-index.html'));
+    } else {
+        res.sendFile(path.join(__dirname, 'index.html'));
+    }
 });
 
 app.listen(PORT, () => {

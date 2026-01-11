@@ -72,6 +72,43 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Subscribe button click handlers (for MoM AI site)
+    const subscribeButtons = document.querySelectorAll('.subscribe-btn');
+    subscribeButtons.forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Get plan from data attribute (default to monthly)
+            const plan = btn.dataset.plan || 'monthly';
+
+            // Disable button and show loading state
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Loading...';
+            btn.style.pointerEvents = 'none';
+
+            try {
+                const response = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plan })
+                });
+                const data = await response.json();
+
+                if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    throw new Error(data.error || 'Failed to create checkout session');
+                }
+            } catch (error) {
+                console.error('Checkout error:', error);
+                alert('Unable to start checkout. Please try again.');
+                btn.innerHTML = originalText;
+                btn.style.pointerEvents = 'auto';
+            }
+        });
+    });
+
     // Intersection Observer for animations
     const observerOptions = {
         threshold: 0.1,
